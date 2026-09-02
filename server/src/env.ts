@@ -15,12 +15,23 @@ function required(name: string): string {
   return value;
 }
 
+const nodeEnv = process.env.NODE_ENV ?? "development";
+
+/**
+ * Where the app is served from. In dev that's the Vite server (which proxies
+ * `/api` to Express); in production Express serves the client itself, so both
+ * collapse onto the Render URL.
+ */
+const appUrl = process.env.APP_URL ?? "http://localhost:5173";
+
 export const env = {
-  nodeEnv: process.env.NODE_ENV ?? "development",
+  nodeEnv,
   port: Number(process.env.PORT ?? 3000),
-  appUrl: process.env.APP_URL ?? "http://localhost:5173",
-  /** Lazily read so M0/M1 tooling can boot before the DB is wired up. */
+  appUrl,
+  authUrl: process.env.BETTER_AUTH_URL ?? appUrl,
+  /** Lazy so tooling that doesn't touch the DB can still boot. */
   databaseUrl: () => required("DATABASE_URL"),
+  authSecret: () => required("BETTER_AUTH_SECRET"),
 };
 
-export const isProduction = env.nodeEnv === "production";
+export const isProduction = nodeEnv === "production";

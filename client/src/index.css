@@ -1,13 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    /* Pawspot brand — a sunset palette (punch → tangerine → marigold) with
+       cyan as the surprise accent, on a deep aubergine ink. */
+    --color-ink: #241432;
+    --color-punch: #ff3d7f;
+    --color-tangerine: #ff8a3d;
+    --color-marigold: #ffb627;
+    --color-sky: #29c7e8;
+    --color-mint: #22d39a;
+    --color-cream: #fff6ec;
+
+    --font-heading: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,30 +58,31 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --background: #fff6ec;
+    --foreground: #241432;
+    --card: #ffffff;
+    --card-foreground: #241432;
+    --popover: #ffffff;
+    --popover-foreground: #241432;
+    --primary: #ff3d7f;
+    --primary-foreground: #ffffff;
+    --secondary: #fdeadb;
+    --secondary-foreground: #241432;
+    --muted: #f6ebf7;
+    --muted-foreground: #6b5877;
+    --accent: #29c7e8;
+    --accent-foreground: #0b2b33;
+    --destructive: #e5484d;
+    --border: #e9d9e4;
+    --input: #e0cdd9;
+    --ring: #ff3d7f;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
+    /* Rounded everything — the brief's word, and the brand's posture. */
+    --radius: 1.25rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
@@ -122,9 +132,65 @@
     @apply border-border outline-ring/50;
     }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     }
   html {
     @apply font-sans;
+    /* The deck owns the viewport; nothing should rubber-band behind it. */
+    overscroll-behavior: none;
     }
+  h1, h2, h3 {
+    @apply font-heading;
+    }
+}
+
+@layer components {
+  /*
+   * The signature surface: a slow-drifting sunset aurora. Three radial pools
+   * of brand colour orbit behind the content, so the page feels alive without
+   * anything on it actually moving.
+   */
+  .aurora {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--color-ink);
+    }
+  .aurora::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    z-index: -1;
+    background:
+      radial-gradient(38% 46% at 22% 26%, var(--color-punch) 0%, transparent 62%),
+      radial-gradient(42% 48% at 80% 22%, var(--color-marigold) 0%, transparent 60%),
+      radial-gradient(46% 52% at 52% 88%, var(--color-sky) 0%, transparent 62%);
+    filter: blur(28px) saturate(1.15);
+    animation: aurora-drift 26s ease-in-out infinite alternate;
+    }
+
+  /* Rubber-stamp badges that fade in as you drag the card. Generous vertical
+     padding: Fredoka's ascenders sit high and clip against a tight border. */
+  .stamp {
+    @apply font-heading font-bold uppercase;
+    letter-spacing: 0.08em;
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 0.85rem;
+    padding: 0.45rem 0.9rem 0.55rem;
+    line-height: 1;
+    }
+}
+
+@keyframes aurora-drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to   { transform: translate3d(3%, 2%, 0) scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora::before { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

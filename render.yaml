@@ -1,0 +1,50 @@
+# Render blueprint — one web service, one Postgres database.
+# Deploy with: Render dashboard → New → Blueprint → point at this repo.
+#
+# NOTE ON THE FREE TIER: `preDeployCommand` requires a paid instance type.
+# On the free plan, delete the `preDeployCommand` line below and use this
+# build command instead, so migrations run as part of the build:
+#
+#   buildCommand: npm install && npm run build && npm run db:migrate
+#
+# See README.md → Deploying to Render.
+
+databases:
+  - name: pawspot-db
+    databaseName: pawspot
+    user: pawspot
+    plan: basic-256mb
+
+services:
+  - type: web
+    name: pawspot
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build
+    preDeployCommand: npm run db:migrate
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pawspot-db
+          property: connectionString
+      # 32+ char random string, generated once by Render and then kept.
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      # Both must be the service's public URL — Better Auth signs cookies
+      # against it and rejects requests from untrusted origins.
+      - key: BETTER_AUTH_URL
+        fromService:
+          type: web
+          name: pawspot
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: APP_URL
+        fromService:
+          type: web
+          name: pawspot
+          envVarKey: RENDER_EXTERNAL_URL

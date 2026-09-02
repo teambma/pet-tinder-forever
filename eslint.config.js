@@ -38,5 +38,13 @@ export default tseslint.config(
       ecmaVersion: 2023,
       globals: globals.node,
     },
+    rules: {
+      // Express identifies error handlers by arity, so its 4th parameter has
+      // to stay even when unused. `_`-prefixed args are deliberate throwaways.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
   },
 );
