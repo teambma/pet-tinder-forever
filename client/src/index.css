@@ -138,6 +138,9 @@
     @apply font-sans;
     /* The deck owns the viewport; nothing should rubber-band behind it. */
     overscroll-behavior: none;
+    /* Paints the canvas, so an overscroll bounce shows ink rather than the
+       light `--background` underneath every screen's dark aurora. */
+    background-color: var(--color-ink);
     }
   h1, h2, h3 {
     @apply font-heading;
@@ -154,6 +157,9 @@
     position: relative;
     isolation: isolate;
     background-color: var(--color-ink);
+    /* The gradient below deliberately bleeds past every edge; without this it
+       would enlarge the document and scroll blank space into view. */
+    overflow: hidden;
     }
   .aurora::before {
     content: "";
