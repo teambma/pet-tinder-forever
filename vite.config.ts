@@ -19,6 +19,9 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Fail instead of silently drifting to 5174. A moved port leaves a stale
+    // server on 5173 proxying to a dead API, which looks like a broken app.
+    strictPort: true,
     proxy: {
       "/api": {
         target: `http://localhost:${apiPort}`,

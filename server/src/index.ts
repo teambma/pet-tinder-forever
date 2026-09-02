@@ -61,6 +61,24 @@ const onError: ErrorRequestHandler = (error, _req, res, _next) => {
 };
 app.use(onError);
 
-app.listen(env.port, () => {
-  console.log(`🐾 Pawspot listening on http://localhost:${env.port}`);
+const server = app.listen(env.port, () => {
+  console.log(
+    isProduction
+      ? `🐾 Pawspot is up — open http://localhost:${env.port}`
+      : // In dev the client is Vite's to serve; it prints its own URL.
+        `🐾 Pawspot API listening on :${env.port}`,
+  );
+});
+
+// Without this, a port clash exits silently and the app just looks broken:
+// Vite still serves the page, but every /api call fails.
+server.on("error", (error: NodeJS.ErrnoException) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(
+      `\n✖ Port ${env.port} is already in use, so the Pawspot API can't start.\n` +
+        `  Free that port, or set PORT to something else in .env.\n`,
+    );
+    process.exit(1);
+  }
+  throw error;
 });
