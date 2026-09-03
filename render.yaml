@@ -1,11 +1,10 @@
 # Render blueprint — one web service, one Postgres database.
 # Deploy with: Render dashboard → New → Blueprint → point at this repo.
 #
-# NOTE ON THE FREE TIER: `preDeployCommand` requires a paid instance type.
-# On the free plan, delete the `preDeployCommand` line below and use this
-# build command instead, so migrations run as part of the build:
-#
-#   buildCommand: npm install && npm run build && npm run db:migrate
+# Migrations run in the build command because `preDeployCommand` requires a
+# paid instance type. On a paid plan, move `npm run db:migrate` out of
+# buildCommand and into `preDeployCommand:` so it runs after the build but
+# before the new version starts serving.
 #
 # See README.md → Deploying to Render.
 
@@ -22,8 +21,7 @@ services:
     plan: starter
     region: oregon
     branch: main
-    buildCommand: npm install && npm run build
-    preDeployCommand: npm run db:migrate
+    buildCommand: npm install && npm run build && npm run db:migrate
     startCommand: npm run start
     healthCheckPath: /api/health
     envVars:
@@ -36,15 +34,6 @@ services:
       # 32+ char random string, generated once by Render and then kept.
       - key: BETTER_AUTH_SECRET
         generateValue: true
-      # Both must be the service's public URL — Better Auth signs cookies
-      # against it and rejects requests from untrusted origins.
-      - key: BETTER_AUTH_URL
-        fromService:
-          type: web
-          name: pawspot
-          envVarKey: RENDER_EXTERNAL_URL
-      - key: APP_URL
-        fromService:
-          type: web
-          name: pawspot
-          envVarKey: RENDER_EXTERNAL_URL
+      # BETTER_AUTH_URL / APP_URL are deliberately not set: the server falls
+      # back to RENDER_EXTERNAL_URL, which Render injects into every service.
+      # Set them only for a custom domain. See README → Getting the URLs right.

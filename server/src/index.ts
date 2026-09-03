@@ -62,12 +62,24 @@ const onError: ErrorRequestHandler = (error, _req, res, _next) => {
 app.use(onError);
 
 const server = app.listen(env.port, () => {
-  console.log(
-    isProduction
-      ? `🐾 Pawspot is up — open http://localhost:${env.port}`
-      : // In dev the client is Vite's to serve; it prints its own URL.
-        `🐾 Pawspot API listening on :${env.port}`,
-  );
+  if (!isProduction) {
+    // In dev the client is Vite's to serve; it prints its own URL.
+    console.log(`🐾 Pawspot API listening on :${env.port}`);
+    return;
+  }
+
+  console.log(`🐾 Pawspot is up on :${env.port} — serving ${env.appUrl}`);
+
+  // The public URL is what Better Auth checks every request's Origin against,
+  // so if it's still the dev default here, every sign-in will fail. Say so at
+  // boot rather than leaving it to be discovered as "Invalid origin" later.
+  if (env.appUrl.includes("localhost")) {
+    console.warn(
+      "⚠ APP_URL is still localhost in production. Set APP_URL (and " +
+        "BETTER_AUTH_URL) to this service's public URL, or sign-in will fail " +
+        'with "Invalid origin".',
+    );
+  }
 });
 
 // Without this, a port clash exits silently and the app just looks broken:

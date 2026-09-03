@@ -119,25 +119,26 @@ the web service and the Postgres database, and wires `DATABASE_URL`,
 
 Create a **Web Service** from the repo plus a **Postgres** instance, then set:
 
+Create a **Web Service** from the repo plus a **Postgres** instance, then set:
+
 | Setting | Value |
 |---|---|
-| Build Command | `npm install && npm run build` |
-| Pre-Deploy Command | `npm run db:migrate` |
+| Build Command | `npm install && npm run build && npm run db:migrate` |
 | Start Command | `npm run start` |
 | Health Check Path | `/api/health` |
 
 Environment variables: `DATABASE_URL` (from the database), `BETTER_AUTH_SECRET`
-(32+ random chars), `BETTER_AUTH_URL` and `APP_URL` (both the service's public
-URL, e.g. `https://pawspot.onrender.com`), and `NODE_ENV=production`. Render
-provides `PORT` itself.
+(32+ random chars), and `NODE_ENV=production`. Render provides `PORT` and
+`RENDER_EXTERNAL_URL` itself.
 
-> **Free tier:** Render's separate Pre-Deploy step requires a paid instance
-> type. On the free plan, drop the Pre-Deploy command and fold the migration
-> into the build instead:
->
-> ```
-> npm install && npm run build && npm run db:migrate
-> ```
+The build command above runs migrations, which is what the free tier needs —
+Render's separate **Pre-Deploy Command** requires a paid instance type. On a
+paid plan you can move `npm run db:migrate` out of the build and into
+Pre-Deploy instead, so migrations run before the new version goes live rather
+than during the build.
+
+If you skip the migration step entirely the service starts fine and then
+returns 500 on the first sign-up, because the `user` table doesn't exist yet.
 
 After the first deploy, seed the pets once from a Render shell (or locally with
 `DATABASE_URL` pointed at the production database):
@@ -150,7 +151,18 @@ Pushes to `main` auto-deploy.
 
 ### Getting the URLs right
 
-`BETTER_AUTH_URL` and `APP_URL` must both be the deployed origin. Better Auth
-signs its cookies against that URL and rejects state-changing requests from
-untrusted origins, so a stale value shows up as sign-in appearing to succeed
-and the session never sticking.
+Better Auth signs its cookies against the app's public URL and rejects
+state-changing requests from any other origin, so this value has to be right or
+every sign-in fails with `Invalid origin` in the logs.
+
+It resolves in this order, and the first one set wins:
+
+1. `APP_URL` / `BETTER_AUTH_URL` — set these to override anything else.
+2. `RENDER_EXTERNAL_URL` — injected by Render into every service, so a
+   hand-created service gets its own address with no configuration at all.
+3. `http://localhost:5173` — the dev default.
+
+You only need to set `APP_URL` and `BETTER_AUTH_URL` yourself if the app is
+served from a custom domain, since `RENDER_EXTERNAL_URL` is the `.onrender.com`
+address. Getting it wrong is loud rather than silent: in production the server
+warns at boot if the URL is still localhost.

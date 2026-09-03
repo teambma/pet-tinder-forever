@@ -17,18 +17,33 @@ function required(name: string): string {
 
 const nodeEnv = process.env.NODE_ENV ?? "development";
 
+/** A trailing slash breaks Better Auth's exact origin comparison. */
+function normalizeUrl(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
 /**
  * Where the app is served from. In dev that's the Vite server (which proxies
  * `/api` to Express); in production Express serves the client itself, so both
- * collapse onto the Render URL.
+ * collapse onto one public URL.
+ *
+ * `RENDER_EXTERNAL_URL` is injected by Render into every service, so a service
+ * created by hand in the dashboard — rather than from `render.yaml` — still
+ * knows its own address. Without that fallback this silently becomes
+ * `localhost:5173` in production and Better Auth rejects every real request
+ * with "Invalid origin".
  */
-const appUrl = process.env.APP_URL ?? "http://localhost:5173";
+const appUrl = normalizeUrl(
+  process.env.APP_URL ??
+    process.env.RENDER_EXTERNAL_URL ??
+    "http://localhost:5173",
+);
 
 export const env = {
   nodeEnv,
   port: Number(process.env.PORT ?? 3000),
   appUrl,
-  authUrl: process.env.BETTER_AUTH_URL ?? appUrl,
+  authUrl: normalizeUrl(process.env.BETTER_AUTH_URL ?? appUrl),
   /** Lazy so tooling that doesn't touch the DB can still boot. */
   databaseUrl: () => required("DATABASE_URL"),
   authSecret: () => required("BETTER_AUTH_SECRET"),
