@@ -137,8 +137,23 @@ paid plan you can move `npm run db:migrate` out of the build and into
 Pre-Deploy instead, so migrations run before the new version goes live rather
 than during the build.
 
-If you skip the migration step entirely the service starts fine and then
-returns 500 on the first sign-up, because the `user` table doesn't exist yet.
+### The database looks after itself
+
+In production the server also migrates on boot, before it accepts any traffic,
+so a missed build step can't leave it serving against a schema-less database.
+Two safeguards make that safe to rely on:
+
+- Migrations run under a Postgres advisory lock, so if several instances boot
+  together only one applies them and the rest wait.
+- If the `pets` table is **empty**, the mock catalogue is seeded automatically.
+  This only ever fills a blank table — it never rewrites one that has rows, and
+  it never touches user data.
+
+If the database can't be prepared the process exits non-zero rather than
+starting and failing every sign-up with `relation "user" does not exist`.
+
+You can still run either step by hand — `npm run db:migrate` and
+`npm run db:seed` — against any `DATABASE_URL`.
 
 After the first deploy, seed the pets once from a Render shell (or locally with
 `DATABASE_URL` pointed at the production database):

@@ -2,6 +2,8 @@ import path from "node:path";
 import { toNodeHandler } from "better-auth/node";
 import express, { type ErrorRequestHandler } from "express";
 import { auth } from "./auth";
+import { runMigrations } from "./db/migrate";
+import { countPets, seedPets } from "./db/seed-pets";
 import { env, isProduction } from "./env";
 import { matchesRouter } from "./routes/matches";
 import { petsRouter } from "./routes/pets";
@@ -60,6 +62,31 @@ const onError: ErrorRequestHandler = (error, _req, res, _next) => {
   res.status(500).json({ error: "Something went wrong" });
 };
 app.use(onError);
+
+// Bring the schema up to date before accepting traffic. Skipped in dev, where
+// `npm run db:migrate` is explicit and part of the workflow.
+if (isProduction) {
+  try {
+    await runMigrations();
+    console.log("🐾 Database schema is up to date.");
+
+    // Pets are fixed reference data, not user data — an empty catalogue means
+    // the deck has nothing to show. Only ever fills a blank table; it never
+    // touches an existing one.
+    if ((await countPets()) === 0) {
+      const counts = await seedPets();
+      const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+      console.log(`🐾 Catalogue was empty — seeded ${total} pets.`);
+    }
+  } catch (error) {
+    console.error(
+      "\n✖ Could not prepare the database, so Pawspot won't start.\n" +
+        "  Every sign-up would fail against a database with no tables.\n",
+      error,
+    );
+    process.exit(1);
+  }
+}
 
 const server = app.listen(env.port, () => {
   if (!isProduction) {
