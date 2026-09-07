@@ -41,6 +41,7 @@ petsRouter.get("/next", requireAuth, async (req, res, next) => {
           description: pets.description,
           imageUrl: pets.imageUrl,
           location: pets.location,
+          shelter: pets.shelter,
         })
         .from(pets)
         .where(undecided)

@@ -35,6 +35,8 @@ export const pets = pgTable("pets", {
   // rows (which would cascade away everyone's swipes).
   imageUrl: text("image_url").notNull().unique(),
   location: text("location").notNull(),
+  /** The rescue or shelter currently looking after this pet. */
+  shelter: text("shelter").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

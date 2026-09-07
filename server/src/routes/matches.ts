@@ -27,6 +27,7 @@ matchesRouter.get("/", requireAuth, async (req, res, next) => {
         description: pets.description,
         imageUrl: pets.imageUrl,
         location: pets.location,
+        shelter: pets.shelter,
         adoptedAt: swipes.createdAt,
       })
       .from(swipes)

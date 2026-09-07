@@ -5,6 +5,7 @@ import {
   useTransform,
   type PanInfo,
 } from "motion/react";
+import { Home } from "lucide-react";
 import { useState } from "react";
 import type { Pet, SwipeDirection } from "@shared/pets";
 import { SPECIES_EMOJI } from "@/features/swipe/species";
@@ -98,6 +99,11 @@ export function PetCard({
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-white/85">
           <span aria-hidden="true">{SPECIES_EMOJI[pet.species]}</span>
           <span>{pet.breed}</span>
+        </p>
+
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/75">
+          <Home className="size-3.5 shrink-0 text-marigold" aria-hidden="true" />
+          <span className="font-semibold text-white/90">{pet.shelter}</span>
           <span aria-hidden="true" className="text-white/40">
             ·
           </span>

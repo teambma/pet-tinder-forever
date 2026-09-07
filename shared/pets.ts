@@ -28,4 +28,5 @@ export interface Pet {
   description: string;
   imageUrl: string;
   location: string;
+  shelter: string;
 }

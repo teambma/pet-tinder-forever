@@ -3,6 +3,7 @@ import { SPECIES, type Species } from "../../../shared/pets";
 import { db } from "./index";
 import { pets } from "./schema";
 import { EXPECTED_COUNTS, IMAGE_BASE, SEED_PETS } from "./seed-data";
+import { SHELTERS, shelterFor } from "./shelters";
 
 /**
  * Insert (or refresh) the mock catalogue.
@@ -24,6 +25,7 @@ export async function seedPets(): Promise<Record<Species, number>> {
     description: pet.description,
     imageUrl: `${IMAGE_BASE}${pet.image}`,
     location: pet.location,
+    shelter: shelterFor(pet.location),
   }));
 
   await db
@@ -40,6 +42,7 @@ export async function seedPets(): Promise<Record<Species, number>> {
         size: sql`excluded.size`,
         description: sql`excluded.description`,
         location: sql`excluded.location`,
+        shelter: sql`excluded.shelter`,
       },
     });
 
@@ -85,5 +88,17 @@ function assertSeedDataIsSound() {
         `Expected ${expected} ${species}s in the seed data, found ${actual}.`,
       );
     }
+  }
+
+  // Fail here, listing every gap, rather than on the first pet mid-insert.
+  const missing = [
+    ...new Set(
+      SEED_PETS.map((pet) => pet.location).filter(
+        (location) => !SHELTERS[location],
+      ),
+    ),
+  ];
+  if (missing.length > 0) {
+    throw new Error(`No shelter defined for: ${missing.join(", ")}`);
   }
 }
