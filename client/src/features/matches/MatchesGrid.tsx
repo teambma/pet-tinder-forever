@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { Undo2 } from "lucide-react";
+import { Home, Undo2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Match } from "@shared/api";
@@ -146,6 +146,17 @@ export function MatchesGrid() {
                 <p className="mt-0.5 text-sm text-white/75">
                   <span aria-hidden="true">{SPECIES_EMOJI[match.species]}</span>{" "}
                   {match.breed}
+                </p>
+
+                {/* Where to actually go and collect them. */}
+                <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-snug text-white/70">
+                  <Home
+                    className="mt-px size-3 shrink-0 text-marigold"
+                    aria-hidden="true"
+                  />
+                  <span className="line-clamp-2 font-semibold text-white/85">
+                    {match.shelter}
+                  </span>
                 </p>
               </div>
 
